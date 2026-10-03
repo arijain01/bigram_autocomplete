@@ -17,9 +17,16 @@ def load_corpus(filepath: str) -> list[str]:
         content = f.read()
     return tokenize(content)
 
+def extract_bigrams(tokens: list[str]) -> list[tuple[str, str]]:
+    """Generates consecutive word pairs (w1, w2) from a list of tokens."""
+    return list(zip(tokens[:-1], tokens[1:]))
 
 if __name__ == "__main__":
     # Test reading and tokenizing our corpus
     tokens = load_corpus("corpus.txt")
     print(f"Total tokens loaded: {len(tokens)}")
-    print(f"First 15 tokens: {tokens[:15]}")
+#    print(f"First 15 tokens: {tokens[:15]}")
+
+    bigrams = extract_bigrams(tokens)
+    print(f"Total bigrams generated: {len(bigrams)}")
+    print(f"First 5 bigrams: {bigrams[:5]}")
