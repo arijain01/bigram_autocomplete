@@ -31,6 +31,38 @@ def build_model(
         model[w1][w2] += 1
     return model
 
+def predict_next(
+    model: defaultdict[str, Counter[str]],
+    current_word: str,
+    prefix: str = "",
+    top_k: int = 3,
+) -> list[tuple[str, int]]:
+    """Suggests the top_k most likely next words given current_word,
+
+    optionally filtered by a starting letter/prefix.
+    """
+    current_word = current_word.lower().strip()
+    prefix = prefix.lower().strip()
+
+    # If the word was never seen in our training corpus, we cannot predict
+    if current_word not in model:
+        return []
+
+    followers = model[current_word]
+
+    # Case 1: The user started typing the next word (filter by prefix)
+    if prefix:
+        matches = [
+            (word, count)
+            for word, count in followers.items()
+            if word.startswith(prefix)
+        ]
+        # Sort descending by count
+        matches.sort(key=lambda pair: pair[1], reverse=True)
+        return matches[:top_k]
+
+    # Case 2: No prefix, return the most common following words
+    return followers.most_common(top_k)
 
 if __name__ == "__main__":
     # Test reading and tokenizing our corpus
@@ -45,12 +77,24 @@ if __name__ == "__main__":
     model = build_model(bigrams)
 
     # Let's inspect what follows a common word like 'the' or 'of'
-    test_word = "the"
-    print(
-        f"Top 5 words that follow '{test_word}': {model[test_word].most_common(5)}"
-    )
+#    test_word = "the"
+#    print(
+#        f"Top 5 words that follow '{test_word}': {model[test_word].most_common(5)}"
+#    )
 
-    test_word_2 = "gift"
-    print(
-        f"Top 5 words that follow '{test_word_2}': {model[test_word_2].most_common(5)}"
-    )
+#    test_word_2 = "gift"
+#    print(
+#        f"Top 5 words that follow '{test_word_2}': {model[test_word_2].most_common(5)}"
+#    )
+
+   # Test 1: Full word prediction
+    print("Suggestions after 'gift':")
+    print(predict_next(model, "gift", top_k=3))
+
+    # Test 2: Prefix filtering (after 'the', words starting with 'm')
+    print("\nSuggestions after 'the' starting with 'm':")
+    print(predict_next(model, "the", prefix="m", top_k=3))
+
+    # Test 3: Unseen word test
+    print("\nSuggestions after unseen word 'computer':")
+    print(predict_next(model, "computer", top_k=3))
